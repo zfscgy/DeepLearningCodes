@@ -23,20 +23,20 @@ model = keras.Model(inputs=[input_1, input_2], outputs=distance)
 model.summary()
 model.compile(Opts.Adam(0.00006), loss=Loss.binary_crossentropy, metrics=[M.binary_accuracy])
 
-omniglot_loader = OmniglotLoader("./Data/Omniglot/Omniglot Dataset", False, 32)
-omniglot_loader.split_train_datasets()
 
+if __name__ == "__main__":
+    omniglot_loader = OmniglotLoader("./Data/Omniglot/Omniglot Dataset", False, 32)
+    omniglot_loader.split_train_datasets()
+    n_rounds = 1000000
+    for i in range(n_rounds):
+        images, labels = omniglot_loader.get_train_batch()
 
-n_rounds = 1000000
-for i in range(n_rounds):
-    images, labels = omniglot_loader.get_train_batch()
-
-    loss = model.train_on_batch(images, labels)
-    print("Iteration:", i, " Training loss & metric:", loss)
-    if i % 1000 == 0:
-        eval_imgs, eval_labels = omniglot_loader.get_test_batch(3, False, 5)
-        pred_labels = model.predict(eval_imgs)
-        for i in range(len(eval_labels)):
-            print(eval_labels[i], pred_labels[i])
-        acc = model.evaluate(eval_imgs, eval_labels)
-        print("Test loss & metric:", acc)
+        loss = model.train_on_batch(images, labels)
+        print("Iteration:", i, " Training loss & metric:", loss)
+        if i % 1000 == 0:
+            eval_imgs, eval_labels = omniglot_loader.get_test_batch(3, False, 5)
+            pred_labels = model.predict(eval_imgs)
+            for i in range(len(eval_labels)):
+                print(eval_labels[i], pred_labels[i])
+            acc = model.evaluate(eval_imgs, eval_labels)
+            print("Test loss & metric:", acc)

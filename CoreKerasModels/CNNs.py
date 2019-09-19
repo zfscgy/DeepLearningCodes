@@ -6,6 +6,7 @@ A = tf.keras.activations
 
 class OmniglotCNN:
     """
+    CNN for omniglot images
     Input size is [105, 105, 1]
     Notice:
         default stride for Conv layers = 1
