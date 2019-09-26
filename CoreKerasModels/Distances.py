@@ -21,6 +21,3 @@ class WeightedL1Distance:
         self.output_layer = L.Dense(1, activation=A.sigmoid)
         self.distance = self.output_layer(self.l1_distance)  # [1]
         self.model = M.Model(inputs=[self.input_1, self.input_2], outputs=self.distance)
-
-    def get_models(self):
-        return [self.model]
