@@ -7,4 +7,4 @@ class Sampler:
         self.n_samples = n_samples
 
     def get_samples(self, batch_size):
-        return [np.random.choice(self.item_size, self.n_samples, replace=False) for _ in range(batch_size)]
+        return np.array([np.random.choice(self.item_size, self.n_samples, replace=False) for _ in range(batch_size)])
