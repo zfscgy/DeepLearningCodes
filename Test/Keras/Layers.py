@@ -2,39 +2,72 @@ import tensorflow as tf
 L = tf.keras.layers
 A = tf.keras.activations
 K = tf.keras.backend
+M = tf.keras.models
 Ops = tf.keras.optimizers
 Losses = tf.keras.losses
 import numpy as np
 
-class MyDenseLayer(L.Layer):
-    def __init__(self, units):
-        self.units = units
-        self.dense_layer = L.Dense(self.units)
-        super(MyDenseLayer, self).__init__()
+
+def test_nested_layers():
+    class MyDenseLayer(L.Layer):
+        def __init__(self, units):
+            self.units = units
+            self.dense_layer = L.Dense(self.units)
+            super(MyDenseLayer, self).__init__()
+
+        def build(self, input_shape):
+            self.dense_layer.build(input_shape)
+            # Must add following two lines, otherwise the nested dense layer won't be trained
+            # self._trainable_weights += self.dense_layer.trainable_weights
+            # self._non_trainable_weights += self.dense_layer.non_trainable_weights
+            super(MyDenseLayer, self).build(input_shape)
+            print(self._trainable_weights)
+
+        def call(self, inputs, **kwargs):
+            print("Layer called")
+            return self.dense_layer.call(inputs)
+
+        def compute_output_shape(self, input_shape):
+            return list(input_shape[:-1]).append(self.units)
+
+    class RandomLayer(L.Layer):
+        def call(self, inputs):
+            return K.cast(K.random_uniform([1], 0, 10), 'int32')
+
+    x1s = np.random.uniform(-1, 1, [1000, 1])
+    x2s = np.random.uniform(0, 1, [1000, 1])
+    zs = x1s + x2s
+    xs = np.hstack([x1s, x2s])
 
 
-    def build(self, input_shape):
-        self.dense_layer.build(input_shape)
-        # Must add following two lines, otherwise the nested dense layer won't be trained
-        self._trainable_weights += self.dense_layer.trainable_weights
-        self._non_trainable_weights += self.dense_layer.non_trainable_weights
-        super(MyDenseLayer, self).build(input_shape)
-        print(self._trainable_weights)
+    # Test nested layers
+    model = tf.keras.Sequential()
+    model.add(MyDenseLayer(1))
+    model.add(RandomLayer())
+    model.compile(Ops.SGD(0.1), Losses.mean_squared_error)
+    model.fit(xs, zs)
 
-    def call(self, inputs, **kwargs):
-        return self.dense_layer.call(inputs)
+def test_look_up_model():
+    input_1 = L.Input([10])
+    input_2 = L.Input([2, 1], dtype='int32')
+    out = tf.gather_nd(input_1, input_2, batch_dims=1)
+    model = M.Model([input_1, input_2], out)
+    print(model.predict(([[1, 2, 3, 4, 5, 6, 7, 8, 9, 10]], [[[0], [1]]])))
 
-    def compute_output_shape(self, input_shape):
-        return list(input_shape[:-1]).append(self.units)
+def test_2_inputs_layer():
+    class DualInputLayer(L.Layer):
+        def __init__(self):
+            super(DualInputLayer, self).__init__()
+        def build(self, input_shape):
+            shape1, shape2 = input_shape
+            print(shape1, shape2)
+        def call(self, inputs):
+            return L.concatenate(inputs)
+    input_1 = L.Input([1])
+    input_2 = L.Input([1])
+    output_layer = DualInputLayer()
+    output = output_layer([input_1, input_2])
+    model = M.Model([input_1, input_2], output)
+    print(model.predict([[1], [2]]))
 
-
-x1s = np.random.uniform(-1, 1, [1000, 1])
-x2s = np.random.uniform(0, 1, [1000, 1])
-zs = x1s + x2s
-xs = np.hstack([x1s, x2s])
-
-
-model = tf.keras.Sequential()
-model.add(MyDenseLayer(1))
-model.compile(Ops.SGD(0.1), Losses.mean_squared_error)
-model.fit(xs, zs, batch_size=30, epochs=1000)
+test_2_inputs_layer()

@@ -2,8 +2,8 @@ import numpy as np
 class DataLoader:
     def __init__(self, dataset):
         dataset_dict = {
-            "100k": ("Data/MovieLens/Raw/ml-latest-small/ratings.csv", ","),
-            '1m': ("Data/MovieLens/Raw/ml-1m/ratings.dat", "::")
+            "100k": ("./Data/MovieLens/Raw/ml-latest-small/ratings.csv", ","),
+            '1m': ("./Data/MovieLens/Raw/ml-1m/ratings.dat", "::")
         }
         assert dataset in dataset_dict, "Invalid dataset"
         self.path = dataset_dict[dataset][0]
