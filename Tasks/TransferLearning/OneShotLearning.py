@@ -22,7 +22,7 @@ distance = distance_model([features_1, features_2])
 model = keras.Model(inputs=[input_1, input_2], outputs=distance)
 model.summary()
 model.compile(Opts.Adam(0.00006), loss=Loss.binary_crossentropy, metrics=[M.binary_accuracy])
-omniglot_loader = OmniglotLoader("./Data/Omniglot/Omniglot Dataset", False, 32)
+omniglot_loader = OmniglotLoader(False, 32)
 omniglot_loader.split_train_datasets()
 n_rounds = 1000000
 for i in range(n_rounds):

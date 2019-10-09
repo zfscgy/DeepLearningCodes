@@ -70,4 +70,37 @@ def test_2_inputs_layer():
     model = M.Model([input_1, input_2], output)
     print(model.predict([[1], [2]]))
 
-test_2_inputs_layer()
+def test_trainable():
+    model_1 = M.Sequential()
+    model_1.add(L.Dense(1))
+    model_2 = M.Sequential()
+    model_2.add(L.Dense(1))
+    model_3 = M.Sequential()
+    model_3.add(model_1)
+    model_4 = M.Sequential()
+    model_4.add(model_1)
+
+    model_3.compile(Ops.SGD(0.1), Losses.mean_squared_error)
+    model_4.compile(Ops.SGD(0.1), Losses.mean_squared_error)
+    xs = np.random.uniform(0, 1, [100, 10])
+    ys = np.sum(xs, axis=1, keepdims=True)
+
+    model_3.predict(xs)
+    print(model_3.get_weights())
+    # model_1.trainable = False
+    model_3. train_on_batch(xs, ys)
+    print(model_3.get_weights())
+    model_3.trainable = False
+    model_4.train_on_batch(xs, ys)
+    print(model_4.get_weights())
+    '''
+    inputs = L.Input(10)
+    output = model_1(inputs, training=False)
+    model_5 = M.Model(inputs, output)
+    model_5.compile(Ops.SGD(0.1), Losses.mean_squared_error)
+    print(model_5.get_weights())
+    model_5.fit(xs, ys)
+    print(model_5.get_weights())
+    '''
+
+test_trainable()

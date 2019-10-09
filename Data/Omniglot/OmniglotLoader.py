@@ -30,7 +30,7 @@ class OmniglotLoader:
 
     """
 
-    def __init__(self, dataset_path, use_augmentation, batch_size):
+    def __init__(self, use_augmentation, batch_size):
         """Inits OmniglotLoader with the provided values for the attributes.
 
         It also creates an Image Augmentor object and loads the train set and 
@@ -43,7 +43,7 @@ class OmniglotLoader:
             batch_size: size of the batch to be used in training     
         """
 
-        self.dataset_path = dataset_path
+        self.dataset_path = "./Data/Omniglot/Omniglot Dataset"
         self.train_dictionary = {}
         self.evaluation_dictionary = {}
         self.image_width = 105
