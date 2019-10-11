@@ -72,9 +72,7 @@ def test_2_inputs_layer():
 
 def test_trainable():
     model_1 = M.Sequential()
-    model_1.add(L.Dense(1))
-    model_2 = M.Sequential()
-    model_2.add(L.Dense(1))
+    model_1.add(L.Dense(1, input_shape=[10]))
     model_3 = M.Sequential()
     model_3.add(model_1)
     model_4 = M.Sequential()
@@ -93,6 +91,9 @@ def test_trainable():
     model_3.trainable = False
     model_4.train_on_batch(xs, ys)
     print(model_4.get_weights())
+    model_1.trainable = True
+    model_4.train_on_batch(xs, ys)
+    print(model_4.get_weights())
     '''
     inputs = L.Input(10)
     output = model_1(inputs, training=False)
@@ -103,4 +104,27 @@ def test_trainable():
     print(model_5.get_weights())
     '''
 
-test_trainable()
+def test_batch_normalization():
+    def loss_y(y_true, y_pred):
+        return K.var(y_pred)
+    x1 = np.random.normal(0, 1, [10, 1])
+    x2 = np.random.normal(0, 2, [10, 1])
+    xs = np.hstack([x1, x2])
+    model = M.Sequential([L.BatchNormalization(input_shape=[2])])
+    # model.trainable = False
+    model.compile(Ops.SGD(0), loss_y)
+    ys = model.train_on_batch(xs, xs)
+    print(ys)
+    x3 = np.random.normal(0, 100, [10, 1])
+    x4 = np.random.normal(0, 10, [10, 1])
+    test_xs = np.hstack([x3, x4])
+    for i in range(100):
+        ys0 = model.train_on_batch(test_xs, test_xs)
+    ys1 = model.test_on_batch(test_xs, test_xs)
+    ys2 = model.train_on_batch(test_xs, test_xs)
+    ys3 = model.test_on_batch(test_xs, test_xs)
+    for i in range(100):
+        ys4 = model.test_on_batch(test_xs, test_xs)
+    print(ys0, ys1, ys2, ys3, ys4)
+
+test_batch_normalization()

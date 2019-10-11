@@ -8,14 +8,15 @@ import numpy as np
 from CoreKerasModels.RNNs import GRU4Rec
 from CoreKerasModels.CustomLosses import MaxBPRLoss
 from Data.MovieLens.MovielensLoader import DataLoader
-from Eval.Metrics import hit_ratio
+from Eval.Metrics import hit_ratio, discounted_cumulative_gain as dcg
 from Utils.Sampler import Sampler
 
 
-movielens = DataLoader("1m")
-movielens.generate_rating_history_seqs()
+movielens = DataLoader("1m-u10i5")
 
-seq_len = 20
+
+seq_len = 8
+movielens.generate_rating_history_seqs(min_len=seq_len+2)
 n_negative_samples = 127
 
 input_seq = L.Input([seq_len])
@@ -37,7 +38,8 @@ negative_samples = L.Input([n_negative_samples], dtype='int32')
 max_bpr_loss_output = max_bpr_loss_model([input_labels, negative_samples, gru_out])
 
 model_train = keras.Model([input_seq, input_labels, negative_samples], max_bpr_loss_output)
-model_train.compile(Opts.SGD(), lambda y_true, y_pred: y_pred)
+model_train.summary()
+model_train.compile(Opts.Adam(), lambda y_true, y_pred: y_pred)
 
 
 n_rounds = 10000
@@ -45,11 +47,11 @@ batch_size = 32
 sampler = Sampler(movielens.n_items, n_negative_samples)
 for i in range(n_rounds):
     if i % 100 == 0:
-        test_seqs = movielens.get_rating_history_test_batch(seq_len, 300)[0]
+        test_seqs = movielens.get_test_batch_from_all_user(seq_len)[0]
         pred_probs = model_pred.predict(test_seqs[:, :-1])
-        pred_max_20_vals = np.argpartition(-pred_probs, 20)[:, :20]  # [batch, 20]
-        hr_20 = hit_ratio(pred_max_20_vals, test_seqs[:, -1])
-        print("Hit ratio at 20:", hr_20)
-    seqs = movielens.get_rating_history_test_batch(seq_len, batch_size)[0]
+        pred_max_10_vals = np.argpartition(-pred_probs, 10)[:, :10]  # [batch, 20]
+        hr_10 = hit_ratio(test_seqs[:, -1], pred_max_10_vals)
+        dcg_10 = dcg(test_seqs[:, -1], pred_max_10_vals)
+        print("Round:{}\t\t\tHR_10:{:.4f} NDCG_10:{:.4f}".format(i, hr_10, dcg_10))
+    seqs = movielens.get_train_batch_from_all_user(seq_len, batch_size)[0]
     model_train.train_on_batch([seqs[:, :-1], seqs[:, -1], sampler.get_samples(batch_size)], np.zeros(batch_size))
-

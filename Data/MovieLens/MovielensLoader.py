@@ -3,7 +3,8 @@ class DataLoader:
     def __init__(self, dataset):
         dataset_dict = {
             "100k": ("./Data/MovieLens/Raw/ml-latest-small/ratings.csv", ","),
-            '1m': ("./Data/MovieLens/Raw/ml-1m/ratings.dat", "::")
+            '1m': ("./Data/MovieLens/Raw/ml-1m/ratings.dat", "::"),
+            '1m-u10i5': ("./Data/MovieLens/Modified/filter_user_MovieLens-1M_After_2000-1-1", ",")
         }
         assert dataset in dataset_dict, "Invalid dataset"
         self.path = dataset_dict[dataset][0]
@@ -63,13 +64,32 @@ class DataLoader:
         users = [seq[0] for seq in seqs]
         for i in range(len(seqs)):
             start_idx = np.random.randint(1, len(seqs[i]) - 1 - seq_len)
-            seqs[i] = seqs[i][start_idx: start_idx + seq_len + 1]
-        return np.array(seqs), np.array(users)
+            seqs[i] = np.array(seqs[i][start_idx: start_idx + seq_len + 1])
+        return np.array(list(seqs)), np.array(users)
 
     def get_rating_history_test_batch(self, seq_len, batch_size):
         seqs = np.random.choice(self.user_rating_seqs[self.train_test_split:], batch_size)
         users = [seq[0] for seq in seqs]
         for i in range(len(seqs)):
             start_idx = np.random.randint(1, len(seqs[i]) - seq_len)
-            seqs[i] = seqs[i][start_idx: start_idx + seq_len + 1]
+            seqs[i] = np.array(seqs[i][start_idx: start_idx + seq_len + 1])
+        return np.array(list(seqs)), np.array(users)
+
+    def get_train_batch_from_all_user(self, seq_len, batch_size):
+        seqs = np.random.choice(self.user_rating_seqs, batch_size)
+        users = [seq[0] for seq in seqs]
+        for i in range(len(seqs)):
+            start_idx = np.random.randint(1, len(seqs[i]) - 1 - seq_len - 1)
+            seqs[i] = np.array(seqs[i][start_idx: start_idx + seq_len + 1])
+        return np.array(list(seqs)), np.array(users)
+
+    def get_test_batch_from_all_user(self, seq_len, batch_size=None):
+        if batch_size is not None:
+            seqs = np.random.choice(self.user_rating_seqs[self.train_test_split:], batch_size)
+        else:
+            seqs = self.user_rating_seqs
+        users = [seq[0] for seq in seqs]
+        seqs = [np.array(seq) for seq in seqs]
+        for i in range(len(seqs)):
+            seqs[i] = seqs[i][- seq_len - 1:]
         return np.array(list(seqs)), np.array(users)

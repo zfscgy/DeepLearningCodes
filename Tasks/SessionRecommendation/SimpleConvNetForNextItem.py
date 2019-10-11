@@ -25,5 +25,5 @@ for i in range(n_rounds):
         test_seqs = movielens.get_rating_history_test_batch(seq_len, 300)[0]
         pred_probs = nextit_model.predict(test_seqs[:, :-1])[:, -1, :]
         pred_max_20_vals = np.argpartition(-pred_probs, 20)[:, :20]  # [batch, 20]
-        hr_20 = hit_ratio(pred_max_20_vals, test_seqs[:, -1])
+        hr_20 = hit_ratio(test_seqs[:, -1], pred_max_20_vals)
         print("Hit ratio at 20:", hr_20)
