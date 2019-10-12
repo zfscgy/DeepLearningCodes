@@ -13,5 +13,5 @@ class AnimeFacesLoader:
         img_files = np.random.choice(self.image_list, batch_size)
         imgs = [Image.open(os.path.join("Data/AnimeFaces/Faces", img)) for img in img_files]
         imgs = [img.resize(self.resize_shape) for img in imgs]
-        imgs = [np.array(img).astype(np.float)/256.0 for img in imgs]
+        imgs = [np.array(img).astype(np.float)/128 - 1 for img in imgs]
         return np.array(imgs)
