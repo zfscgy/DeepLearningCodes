@@ -28,7 +28,6 @@ class OmniglotCNN:
 
 from CoreKerasLayers.ConvLayers import NextRecDilated1DResBlock as _resBlock
 from CoreKerasLayers.SimpleLayers import SoftMaxWithEmbedding as _softmaxEmb
-
 class NextItemCNN:
     def __init__(self, item_feature_dim, item_size, sequence_length, res_blocks):
         """
@@ -44,11 +43,16 @@ class NextItemCNN:
         self.embedding_seq = self.item_embeddings(self.inputs)  # [batch_size, seq_len, feature_dim]
         self.res_block_layers = []
         feature_seq = self.embedding_seq
-        for res_block in res_blocks:
-            res_block_layer = _resBlock(item_feature_dim, res_block, 3)
+        for dilation, kernel_size in res_blocks:
+            res_block_layer = _resBlock(item_feature_dim, dilation, kernel_size)
             feature_seq = res_block_layer(feature_seq)  # [batch_size, seq_len, feature_dim]
 
-        self.final_softmax_layer = _softmaxEmb(item_size, self.item_embeddings)
-        self.output_probs = self.final_softmax_layer(feature_seq)
+        # self.final_softmax_layer = _softmaxEmb(item_size, self.item_embeddings)
+        self.output_logits_layer = L.Dense(item_size)
+        self.output_logits = self.output_logits_layer(feature_seq)
+
+        self.output_softmax_layer = L.Softmax()
+        self.output_probs = self.output_softmax_layer(self.output_logits)
         # [batch_size, seq_len, item_size]
         self.model = M.Model(inputs=self.inputs, outputs=self.output_probs)
+        self.model_logits = M.Model(inputs=self.inputs, outputs=self.output_logits)

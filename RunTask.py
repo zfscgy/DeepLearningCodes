@@ -10,7 +10,7 @@ os.chdir("/home/xly/zf/DeepLearning/DeepLearning")
 
 task_dict = {
     "dcgan": "Tasks/ImageGeneration/DCGAN.py",
-    "nextitnet": "Tasks/SessionRecommendation/SimpleCOnvNetForNextItem.py",
+    "nextitnet": "Tasks/SessionRecommendation/SimpleConvNetForNextItem.py",
     "gru4rec": "Tasks/SessionRecommendation/Gru4Rec.py",
     "oneshot": "Tasks/TransferLearning/OneShotLearning"
 }

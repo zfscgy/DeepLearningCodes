@@ -1,10 +1,32 @@
 import tensorflow as tf
 keras = tf.keras
 L = keras.layers
+Lo = keras.losses
 A = keras.activations
 K = keras.backend
-from CoreKerasLayers.LossLayers import SampleLossLayer as _sampler
+from CoreKerasLayers.LossLayers import SampleOutputLayer as _sampler
 
+class SampledCrossEntropy:
+    '''
+    Considered extra dimensions
+    '''
+    def __init__(self, n_negative_samples, n_item_size, leading_shape=None):
+        if leading_shape is None:
+            leading_shape = []
+
+        self.labels = L.Input(leading_shape, dtype='int32')
+        self.sample_indices = L.Input(leading_shape + [n_negative_samples], dtype='int32')
+        self.output_ratings = L.Input(leading_shape + [n_item_size])
+        self.labels_expanded = K.expand_dims(self.labels, -1)
+        self.sampler = _sampler(n_negative_samples, len(leading_shape))
+        self.sampled_targets, self.sampled_ratings = \
+           self.sampler([self.labels_expanded, self.sample_indices, self.output_ratings])
+        # [batch, leading_shape.., item_size]
+        self.sampled_probs = K.softmax(self.sampled_ratings)
+        self.sampled_crossentropy_loss = Lo.categorical_crossentropy(self.sampled_targets, self.sampled_probs)
+        # [batch, leading_shape, 1]
+        self.sampled_crossentropy_loss = K.expand_dims(K.mean(self.sampled_crossentropy_loss), axis=0)
+        self.model = keras.Model([self.labels, self.sample_indices, self.output_ratings], self.sampled_crossentropy_loss)
 
 
 class MaxBPRLoss:
@@ -13,20 +35,24 @@ class MaxBPRLoss:
     'Recurrent Neural Networks for Top-k Recommendation'
     Note this class uses tf.gather_nd
     """
-    def __init__(self, n_negative_samples, n_item_size):
-        self.labels = L.Input([1], dtype='int32')
-        self.sample_indices = L.Input([n_negative_samples], dtype='int32')
-        self.output_ratings = L.Input([n_item_size])
-        self.sampler = _sampler(n_negative_samples)
+    def __init__(self, n_negative_samples, n_item_size, leading_shape=None):
+        if leading_shape is None:
+            leading_shape = []
+        self.labels = L.Input(leading_shape, dtype='int32')
+        self.labels_expanded = K.expand_dims(self.labels, -1)
+        self.sample_indices = L.Input(leading_shape + [n_negative_samples], dtype='int32')
+        self.output_ratings = L.Input(leading_shape + [n_item_size])
+        self.sampler = _sampler(n_negative_samples, len(leading_shape))
         self.sampled_targets, self.sampled_ratings = \
-           self.sampler([self.labels, self.sample_indices, self.output_ratings])
+           self.sampler([self.labels_expanded, self.sample_indices, self.output_ratings])
         def max_bpr_loss(ys):
-            ys_true, ys_pred = ys   # [batch, 1 + n_samples]
+            ys_true, ys_pred = ys   # [batch.., 1 + n_samples]
             probs_ys_pred = K.softmax(ys_pred)
-            #                      [batch, n_samples]          [batch, 1]
-            sigmoid_diff = K.sigmoid(K.transpose(K.transpose(- ys_pred[:, 1:]) + ys_pred[:, 0]))
+            #                                             [batch.., n_samples]          [batch, ..]
+            sigmoid_diff = K.sigmoid(- ys_pred[:, 1:] + ys_pred[:, :1])
+            # [batch, ..., n_samples]
             weighted_log_sigmoid_diff = probs_ys_pred[:, 1:] * K.log(sigmoid_diff)
-            loss = - K.mean(K.sum(weighted_log_sigmoid_diff, -1), keepdims=True)
+            loss = - K.expand_dims(K.mean(K.sum(weighted_log_sigmoid_diff, axis=-1)), axis=0)
             return loss
         self.max_bpr_loss_layer = L.Lambda(max_bpr_loss)
         self.loss = self.max_bpr_loss_layer([self.sampled_targets, self.sampled_ratings])
