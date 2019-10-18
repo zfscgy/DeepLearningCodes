@@ -7,12 +7,12 @@ M = keras.metrics
 import numpy as np
 from CoreKerasModels.RNNs import GRU4Rec
 from CoreKerasModels.CustomLosses import MaxBPRLoss, SampledCrossEntropy
-from Data.TrashData.Amazon.AmazonLoader import DataLoader
+from Data.TrashData.Rec.RecLoader import DataLoader
 from Eval.Metrics import hit_ratio, discounted_cumulative_gain as dcg
 from Utils.Sampler import Sampler
 
 
-movielens = DataLoader("tinytiny")
+movielens = DataLoader("yoochoose")
 
 
 seq_len = 8
@@ -21,7 +21,7 @@ n_negative_samples = 127
 
 input_seq = L.Input([seq_len])
 
-gru4rec = GRU4Rec(movielens.n_items, 64, seq_len)
+gru4rec = GRU4Rec(movielens.n_items, 24, seq_len)
 gru4rec_model = gru4rec.model
 gru_out = gru4rec_model(input_seq)  # [batch, n_items]
 
@@ -43,14 +43,20 @@ model_train.summary()
 model_train.compile(Opts.Adam(), lambda y_true, y_pred: y_pred)
 
 
-n_rounds = 10000
+n_rounds = 40000
 batch_size = 32
 sampler = Sampler(movielens.n_items, n_negative_samples)
 for i in range(n_rounds):
     if i % 100 == 0:
         test_seqs = movielens.get_test_batch_from_all_user(seq_len)[0]
-        pred_probs = model_pred.predict(test_seqs[:, :-1])
-        pred_max_vals = np.argpartition(-pred_probs, 10)[:, :50]  # [batch, 20]
+
+        pred_max_vals = np.zeros([test_seqs.shape[0], 50])
+        # Using a for-loop to predict, prevent out-of-memory, predict every 1000 sequences
+        for j in range(0, test_seqs.shape[0], 1000):
+            end = min(j + 1000, test_seqs.shape[0])
+            pred_probs = model_pred.predict(test_seqs[j:end, :-1])
+            pred_max_vals[j:end, :] = np.argpartition(-pred_probs, 10)[:, :50]
+
         hr_10 = hit_ratio(test_seqs[:, -1], pred_max_vals[:, :10])
         dcg_10 = dcg(test_seqs[:, -1], pred_max_vals[:, :10])
         hr_50 = hit_ratio(test_seqs[:, -1], pred_max_vals[:, :50])

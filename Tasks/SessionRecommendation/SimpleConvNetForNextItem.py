@@ -7,16 +7,17 @@ M = keras.metrics
 import numpy as np
 from CoreKerasModels.CNNs import NextItemCNN
 from CoreKerasModels.CustomLosses import SampledCrossEntropy, MaxBPRLoss
-from Data.MovieLens.MovielensLoader import DataLoader
+# from Data.MovieLens.MovielensLoader import DataLoader
+from Data.TrashData.Rec.RecLoader import DataLoader
 from Eval.Metrics import hit_ratio, discounted_cumulative_gain as dcg
 from Utils.Sampler import Sampler
 
-movielens = DataLoader("1m-u10i5")
+movielens = DataLoader("yoochoose")
 seq_len = 8
 n_negative_samples = 100
 movielens.generate_rating_history_seqs(min_len=seq_len+2)
 
-nextit_cnn = NextItemCNN(64, movielens.n_items, seq_len, [(1, 3), (2, 2)])
+nextit_cnn = NextItemCNN(24, movielens.n_items, seq_len, [(1, 3), (2, 2)])
 nextit_model_train = nextit_cnn.model_logits
 nextit_model_test = nextit_cnn.model
 input_seq = L.Input([seq_len])
@@ -42,8 +43,14 @@ batch_size = 32
 for i in range(n_rounds):
     if i % 100 == 0:
         test_seqs = movielens.get_test_batch_from_all_user(seq_len)[0]
-        pred_probs = nextit_model_test.predict(test_seqs[:, :-1])[:, -1, :]
-        pred_max_vals = np.argpartition(-pred_probs, 50)[:, :50]  # [batch, 20]
+        # Using a array to store top50 candidates for each test sequence
+        pred_max_vals = np.zeros([test_seqs.shape[0], 50])
+        # Using a for-loop to predict, prevent out-of-memory, predict every 1000 sequences
+        for j in range(0, test_seqs.shape[0], 1000):
+            end = min(j + 1000, test_seqs.shape[0])
+            pred_probs = nextit_model_test.predict(test_seqs[j:end, :-1])[:, -1, :]
+            pred_max_vals[j:end, :] = np.argpartition(-pred_probs, 10)[:, :50]
+
         hr_10 = hit_ratio(test_seqs[:, -1], pred_max_vals[:, :10])
         dcg_10 = dcg(test_seqs[:, -1], pred_max_vals[:, :10])
         hr_50 = hit_ratio(test_seqs[:, -1], pred_max_vals[:, :50])

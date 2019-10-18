@@ -14,16 +14,18 @@ task_dict = {
     "gru4rec": "Tasks/SessionRecommendation/Gru4Rec.py",
     "oneshot": "Tasks/TransferLearning/OneShotLearning"
 }
-if len(sys.argv) < 2:
+argv = sys.argv
+argv = argv[argv.index("RunTask.py"):]
+if len(argv) < 2:
     print("You can run following tasks")
     for key in task_dict:
         print(key)
     exit()
-task = sys.argv[1]
+task = argv[1]
 if task not in task_dict:
     print("Task ", task, " not found")
     for key in task_dict:
         print(key)
     exit()
 else:
-    exec(open(task_dict[sys.argv[1]]).read())
+    exec(open(task_dict[argv[1]]).read())
