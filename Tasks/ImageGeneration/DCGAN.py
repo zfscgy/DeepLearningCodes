@@ -1,9 +1,9 @@
-from CoreKerasModels.GANs import DCGAN_128
-from Data.AnimeFaces.AnimeFacesLoader import AnimeFacesLoader
+from Keras.CoreKerasModels.GANs import DCGAN_128
+from Data.Datasets.AnimeFaces.AnimeFacesLoader import AnimeFacesLoader
 import numpy as np
 import tensorflow as tf
 from PIL import Image
-import matplotlib.pyplot as plt
+
 Opt = tf.keras.optimizers
 Lo = tf.keras.losses
 

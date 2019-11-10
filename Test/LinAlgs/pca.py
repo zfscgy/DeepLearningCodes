@@ -1,4 +1,4 @@
-from CoreLinAlgs.Transformations import PCA
+from LinAlgs.Transformations import PCA
 import numpy as np
 
 xs = np.random.uniform(0, 10, 30)

@@ -1,7 +1,7 @@
 import tensorflow as tf
-from CoreKerasModels.CNNs import OmniglotCNN
-from CoreKerasModels.Distances import WeightedL1Distance
-from Data.Omniglot.OmniglotLoader import OmniglotLoader
+from Keras.CoreKerasModels.CNNs import OmniglotCNN
+from Keras.CoreKerasModels.Distances import WeightedL1Distance
+from Data.Datasets.Omniglot.OmniglotLoader import OmniglotLoader
 keras = tf.keras
 L = keras.layers
 Opts = keras.optimizers

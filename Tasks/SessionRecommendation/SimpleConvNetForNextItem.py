@@ -5,10 +5,10 @@ Opts = keras.optimizers
 Loss = keras.losses
 M = keras.metrics
 import numpy as np
-from CoreKerasModels.CNNs import NextItemCNN
-from CoreKerasModels.CustomLosses import SampledCrossEntropy, MaxBPRLoss
+from Keras.CoreKerasModels.CNNs import NextItemCNN
+from Keras.CoreKerasModels.CustomLosses import SampledCrossEntropy
 # from Data.MovieLens.MovielensLoader import DataLoader
-from Data.TrashData.Rec.RecLoader import DataLoader
+from Data.Datasets.TrashData.Rec.RecLoader import DataLoader
 from Eval.Metrics import hit_ratio, discounted_cumulative_gain as dcg
 from Utils.Sampler import Sampler
 

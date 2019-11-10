@@ -4,7 +4,7 @@ L = keras.layers
 Lo = keras.losses
 A = keras.activations
 K = keras.backend
-from CoreKerasLayers.LossLayers import SampleOutputLayer as _sampler
+from Keras.CoreKerasLayers.LossLayers import SampleOutputLayer as _sampler
 
 class SampledCrossEntropy:
     '''
@@ -31,7 +31,7 @@ class SampledCrossEntropy:
 
 class MaxBPRLoss:
     """
-    THis is the best loss function according to the paper
+    This is the best loss function according to the paper
     'Recurrent Neural Networks for Top-k Recommendation'
     Note this class uses tf.gather_nd
     """

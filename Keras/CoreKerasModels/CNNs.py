@@ -26,8 +26,9 @@ class OmniglotCNN:
         self.model.add(L.Dense(4096, activation=A.sigmoid))  # [4096]
 
 
-from CoreKerasLayers.ConvLayers import NextRecDilated1DResBlock as _resBlock
-from CoreKerasLayers.SimpleLayers import SoftMaxWithEmbedding as _softmaxEmb
+from Keras.CoreKerasLayers.ConvLayers import NextRecDilated1DResBlock as _resBlock
+
+
 class NextItemCNN:
     def __init__(self, item_feature_dim, item_size, sequence_length, res_blocks):
         """

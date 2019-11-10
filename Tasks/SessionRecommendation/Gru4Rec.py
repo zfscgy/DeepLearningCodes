@@ -5,9 +5,9 @@ Opts = keras.optimizers
 Loss = keras.losses
 M = keras.metrics
 import numpy as np
-from CoreKerasModels.RNNs import GRU4Rec
-from CoreKerasModels.CustomLosses import MaxBPRLoss, SampledCrossEntropy
-from Data.TrashData.Rec.RecLoader import DataLoader
+from Keras.CoreKerasModels.RNNs import GRU4Rec
+from Keras.CoreKerasModels.CustomLosses import MaxBPRLoss
+from Data.Datasets.TrashData.Rec.RecLoader import DataLoader
 from Eval.Metrics import hit_ratio, discounted_cumulative_gain as dcg
 from Utils.Sampler import Sampler
 

@@ -1,5 +1,6 @@
 import numpy as np
-class DataLoader:
+from Data.Dataloader import RatingSeqDataLoader
+class DataLoader(RatingSeqDataLoader):
     def __init__(self, dataset):
         dataset_dict = {
             "100k": ("./Data/MovieLens/Raw/ml-latest-small/ratings.csv", ","),

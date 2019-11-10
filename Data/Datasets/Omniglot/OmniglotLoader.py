@@ -5,7 +5,7 @@ import numpy as np
 import math
 from PIL import Image
 
-from Data.Omniglot.ImageAugmentor import ImageAugmentor
+from Data.Datasets.Omniglot.ImageAugmentor import ImageAugmentor
 
 
 class OmniglotLoader:

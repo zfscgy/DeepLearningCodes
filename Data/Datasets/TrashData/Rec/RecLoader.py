@@ -1,11 +1,14 @@
 import numpy as np
-class DataLoader:
+from Data.Dataloader import RatingSeqDataLoader
+
+
+class DataLoader(RatingSeqDataLoader):
     def __init__(self, dataset):
         dataset_dict = {
-            "amazon": ("./Data/TrashData/Rec/Amazon.csv", ","),
-            "google": ("./Data/TrashData/Rec/Google.csv", ","),
-            "yoochoose": ("./Data/TrashData/Rec/YooChoose.csv", ","),
-            "lastfm": ("./Data/TrashData/Rec/LastFM.csv", ",")
+            "amazon": ("./Data/Datasets/TrashData/Rec/Amazon.csv", ","),
+            "google": ("./Data/Datasets/TrashData/Rec/Google.csv", ","),
+            "yoochoose": ("./Data/Datasets/TrashData/Rec/YooChoose.csv", ","),
+            "lastfm": ("./Data/Datasets/TrashData/Rec/LastFM.csv", ",")
         }
         assert dataset in dataset_dict, "Invalid dataset"
         self.path = dataset_dict[dataset][0]

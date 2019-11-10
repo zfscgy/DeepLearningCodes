@@ -1,5 +1,21 @@
 import numpy as np
 
+def binary_cross_entropy(targets, predictions, epsilon=1e-9):
+    predictions = np.clip(predictions, epsilon, 1. - epsilon)
+    ce = - np.mean(np.log(predictions) * targets + np.log(1 - predictions) * (1 - targets))
+    return ce
+
+def cross_entropy(predictions, targets, epsilon=1e-9):
+    """
+    Computes cross entropy between targets (encoded as one-hot vectors)
+    and predictions.
+    Input: predictions (N, k) ndarray
+           targets (N, k) ndarray
+    Returns: scalar
+    """
+    predictions = np.clip(predictions, epsilon, 1. - epsilon)
+    ce = - np.mean(np.log(predictions) * targets)
+    return ce
 
 def hit_ratio(y_true: np.ndarray, y_pred: np.ndarray):
     """
