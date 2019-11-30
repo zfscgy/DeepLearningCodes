@@ -72,23 +72,25 @@ def test_2_inputs_layer():
 
 def test_trainable():
     model_1 = M.Sequential()
-    model_1.add(L.Dense(1, input_shape=[10]))
+    model_1.add(L.Dense(1))
+    model_1.summary()
     model_3 = M.Sequential()
     model_3.add(model_1)
     model_4 = M.Sequential()
     model_4.add(model_1)
 
     model_3.compile(Ops.SGD(0.1), Losses.mean_squared_error)
+
     model_4.compile(Ops.SGD(0.1), Losses.mean_squared_error)
     xs = np.random.uniform(0, 1, [100, 10])
     ys = np.sum(xs, axis=1, keepdims=True)
-
+    model_3.trainable = False
     model_3.predict(xs)
     print(model_3.get_weights())
     # model_1.trainable = False
     model_3. train_on_batch(xs, ys)
     print(model_3.get_weights())
-    model_3.trainable = False
+
     model_4.train_on_batch(xs, ys)
     print(model_4.get_weights())
     model_1.trainable = True
@@ -127,4 +129,4 @@ def test_batch_normalization():
         ys4 = model.test_on_batch(test_xs, test_xs)
     print(ys0, ys1, ys2, ys3, ys4)
 
-test_batch_normalization()
+test_trainable()

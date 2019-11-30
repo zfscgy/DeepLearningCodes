@@ -4,11 +4,13 @@ import random
 import numpy as np
 import math
 from PIL import Image
+import pathlib
 
-from Data.Datasets.Omniglot.ImageAugmentor import ImageAugmentor
+
+from Data.ImageAugmentor import ImageAugmentor
 
 
-class OmniglotLoader:
+class OmniglotLoader0:
     """Class that loads and prepares the Omniglot dataset
 
     This Class was constructed to read the Omniglot alphabets, separate the 
@@ -469,3 +471,48 @@ class OmniglotLoader:
             self._current_evaluation_alphabet_index = 0
 
         return mean_global_accuracy
+
+
+class OmniglotLoader:
+    def __init__(self):
+        self.base_path = pathlib.Path("./Data/Datasets/Omniglot/Omniglot Dataset")
+        self.train_paths = list(self.base_path.joinpath("images_background").iterdir())
+        self.test_paths = list(self.base_path.joinpath("images_evaluation").iterdir())
+        rotation_range = [-15, 15]
+        shear_range = [-0.3 * 180 / math.pi, 0.3 * 180 / math.pi]
+        zoom_range = [0.8, 2]
+        shift_range = [5, 5]
+        self.image_augumentor = ImageAugmentor(0.5, shear_range, rotation_range, shift_range, zoom_range)
+
+    def _get_batch_from_folder(self, folder, batch_size, support_size):
+        alphebets = np.random.choice(folder, batch_size)
+        image_pairs = [[], []]
+        labels = []
+        for alphabet in alphebets:
+            # Choose random characters
+            chs = np.random.choice(list(alphabet.iterdir()), support_size, replace=False).tolist()
+            chs.append(chs[0])
+            # From character folder, choose random images
+            chs = [np.random.choice(list(ch.iterdir())) for ch in chs]
+            for i in range(support_size):
+                image_pairs[0].append((np.asarray(Image.open(chs[i])) - 128) / 128)
+                image_pairs[1].append((np.asarray(Image.open(chs[support_size])) - 128) / 128)
+            label = [1] + [0] * (support_size - 1)
+            labels.extend(label)
+        return image_pairs, labels
+
+    def get_train_batch(self, batch_size, support_size=2, use_augumentor=False):
+        image_pairs, labels = self._get_batch_from_folder(self.train_paths, batch_size, support_size)
+        if use_augumentor:
+            self.image_augumentor.get_random_transform(image_pairs[0])
+            self.image_augumentor.get_random_transform(image_pairs[1])
+        return [np.asarray(image_pairs[0])[:, :, :, np.newaxis], np.asarray(image_pairs[1])[:, :, :, np.newaxis]], \
+               np.asarray(labels, dtype=np.float)[:, np.newaxis]
+
+    def get_test_batch(self, batch_size=None, support_size=2):
+        # Choose random alphabets
+        if batch_size is None:
+            batch_size = len(self.test_paths)
+        image_pairs, labels = self._get_batch_from_folder(self.train_paths, batch_size, support_size)
+        return [np.asarray(image_pairs[0])[:, :, :, np.newaxis], np.asarray(image_pairs[1])[:, :, :, np.newaxis]], \
+               np.asarray(labels, dtype=np.float)[:, np.newaxis]

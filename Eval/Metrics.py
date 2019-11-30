@@ -17,6 +17,7 @@ def cross_entropy(predictions, targets, epsilon=1e-9):
     ce = - np.mean(np.log(predictions) * targets)
     return ce
 
+
 def hit_ratio(y_true: np.ndarray, y_pred: np.ndarray):
     """
 

@@ -176,42 +176,27 @@ class ImageAugmentor:
 
     
     def get_random_transform(self, images):
-        """ Applies a random augmentation to pairs of images
+        """ Applies a random augmentation to a list of images
 
             Args:
-                images: pairs of the batch to be augmented
+                images:  batch to be augmented
         
             Returns:
                 The transformed images
         """
+        n_images = images.shape[0]
+        random_numbers = np.random.random((n_images, 4))
 
-        number_of_pairs_of_images = images[0].shape[0]
-        random_numbers = np.random.random(
-            size=(number_of_pairs_of_images * 2, 4))
+        for idx in range(n_images):
+            image = images[idx, :, :, :]
+            if random_numbers[idx, 0] > 0.5:
+                image = self._perform_random_rotation(image)
+            if random_numbers[idx, 1] > 0.5:
+                image = self._perform_random_shear(image)
+            if random_numbers[idx, 2] > 0.5:
+                image = self._perform_random_shift(image)
+            if random_numbers[idx, 3] > 0.5:
+                image = self._perform_random_zoom(image)
 
-        for pair_index in range(number_of_pairs_of_images):
-            image_1 = images[0][pair_index, :, :, :]
-            image_2 = images[1][pair_index, :, :, :]
-
-            if random_numbers[pair_index * 2, 0] > 0.5:
-                image_1 = self._perform_random_rotation(image_1)
-            if random_numbers[pair_index * 2, 1] > 0.5:
-                image_1 = self._perform_random_shear(image_1)
-            if random_numbers[pair_index * 2, 2] > 0.5:
-                image_1 = self._perform_random_shift(image_1)
-            if random_numbers[pair_index * 2, 3] > 0.5:
-                image_1 = self._perform_random_zoom(image_1)
-
-            if random_numbers[pair_index * 2 + 1, 0] > 0.5:
-                image_2 = self._perform_random_rotation(image_2)
-            if random_numbers[pair_index * 2 + 1, 1] > 0.5:
-                image_2 = self._perform_random_shear(image_2)
-            if random_numbers[pair_index * 2 + 1, 2] > 0.5:
-                image_2 = self._perform_random_shift(image_2)
-            if random_numbers[pair_index * 2 + 1, 3] > 0.5:
-                image_2 = self._perform_random_zoom(image_2)
-
-            images[0][pair_index, :, :, :] = image_1
-            images[1][pair_index, :, :, :] = image_2
-
+            images[idx, :, :, :] = image
         return images

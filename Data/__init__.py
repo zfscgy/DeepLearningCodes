@@ -1,0 +1,3 @@
+from Data.RatingSequenceLoader import RatingSeqDataLoader
+from Data.AnimeFacesLoader import AnimeFacesLoader
+from Data.OmniglotLoader import OmniglotLoader

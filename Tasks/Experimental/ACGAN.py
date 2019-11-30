@@ -17,7 +17,6 @@ plt.plot(class_1_data[:, 0], class_1_data[:, 1], 'x')
 plt.show()
 
 def vanilla_classify():
-
     '''
     data_grid = np.array([[[0.0, 0.0]] * 100] * 100)
     for i in range(100):

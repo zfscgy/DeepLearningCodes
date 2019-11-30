@@ -1,5 +1,5 @@
-from Keras.CoreKerasModels.GANs import DCGAN_128
-from Data.Datasets.AnimeFaces.AnimeFacesLoader import AnimeFacesLoader
+from Keras.Models.DCGAN import DCGAN_128
+from Data.AnimeFacesLoader import AnimeFacesLoader
 import numpy as np
 import tensorflow as tf
 from PIL import Image
@@ -27,75 +27,58 @@ Lo = tf.keras.losses
 '''
 
 
+def dcgan128_experiment(hparams:dict=None, settings:dict=None, verbose=0):
+    if hparams is None:
+        hparams = dict()
+    noise_dim = hparams.get("noise_dim", 32)
+    batch_size = hparams.get("batch_szie", 48)
+    n_dis_rounds = hparams.get("n_dis_rounds", 1)
+    n_gen_rounds = hparams.get("n_gen_rounds", 3)
+    if settings is None:
+        settings = dict()
+    n_rounds = settings.get("n_rounds", 40000)
+    data_loader = AnimeFacesLoader([128, 128])
+    dcgan = DCGAN_128(noise_dim)
+    dis_model = dcgan.model_dis
+    gen_model = dcgan.model_gen
+    adv_model = dcgan.model_adversarial
+    gen_model.summary()
+    adv_model.summary()
 
-hidden_dim = 100
-dcgan = DCGAN_128(hidden_dim)
-data_loader = AnimeFacesLoader([128, 128])
+    dis_model.compile(Opt.Adam(0.00002), Lo.binary_crossentropy)
+    dis_model.trainable = False
+    adv_model.compile(Opt.Adam(0.00002), Lo.binary_crossentropy)
 
-batch_size = 48
-n_rounds = 40000
+    for rounds in range(n_rounds):
+        # Get output images
+        if rounds % 100 == 0 and rounds > 0:
+            noise = np.random.normal(0, 1, [16, noise_dim])
+            tiled_images = np.zeros([4*128, 4*128, 3]).astype(np.uint8)
+            generated_imgs = gen_model.predict(noise)
+            generated_imgs *= 128
+            generated_imgs += 128
+            generated_imgs = generated_imgs.astype(np.uint8)
+            for i in range(16):
+                tiled_images[int(i / 4)*128: int(i / 4)*128 + 128,
+                             int(i % 4)*128: int(i % 4)*128 + 128, :] = generated_imgs[i, :, :, :]
+            Image.fromarray(tiled_images).save("Output/DCGAN/" + "rounds_{0}.jpg".format(rounds))
+            print("Rounds", rounds, "Losses {:.4f},{:.4f},{:.4f}".
+                  format(loss_dis_fake, loss_dis_real, loss_gen))
+        for _ in range(n_dis_rounds):
+            # train discriminator on real & fake images
+            real_imgs = data_loader.get_batch(batch_size)
+            real_ys = np.ones([batch_size, 1]) + np.random.uniform(-0.1, 0, [batch_size, 1])
+            noise = np.random.normal(0, 1, [batch_size, noise_dim])
+            fake_ys = np.zeros([batch_size, 1])
+            fake_imgs = gen_model.predict(noise)
+            loss_dis_real = dis_model.train_on_batch(real_imgs, real_ys)
+            loss_dis_fake = dis_model.train_on_batch(fake_imgs, fake_ys)
+        for _ in range(n_gen_rounds):
+            noise = np.random.normal(0, 1, [batch_size, noise_dim])
+            fake_ys = np.ones([batch_size, 1])
 
-dis_model = dcgan.model_dis
-gen_model = dcgan.model_gen
-adv_model = dcgan.model_adversarial
-gen_model.summary()
-adv_model.summary()
-
-
-
-
-dis_model.compile(Opt.Adam(0.00002), Lo.binary_crossentropy)
-dis_model.trainable = False
-adv_model.compile(Opt.Adam(0.00002), Lo.binary_crossentropy)
-
-layer_outputs = [layer.output for layer in dis_model.layers]
-visual_model = tf.keras.Model(dis_model.input, layer_outputs)
-
-
-
-for rounds in range(n_rounds):
-    # Get output images
-    if rounds % 100 == 0 and rounds > 0:
-        noise = np.random.normal(0, 1, [16, hidden_dim])
-        tiled_images = np.zeros([4*128, 4*128, 3]).astype(np.uint8)
-        generated_imgs = gen_model.predict(noise)
-        generated_imgs *= 128
-        generated_imgs += 128
-        generated_imgs = generated_imgs.astype(np.uint8)
-        for i in range(16):
-            tiled_images[int(i / 4)*128: int(i / 4)*128 + 128,
-                         int(i % 4)*128: int(i % 4)*128 + 128, :] = generated_imgs[i, :, :, :]
-        Image.fromarray(tiled_images).save("Output/DCGAN/" + "rounds_{0}.jpg".format(rounds))
-
-
-    '''
-        layer_visualization = visual_model.predict(generated_imgs[:1])
-        for i in range(len(layer_visualization)):
-            plt.imshow(layer_visualization[i][0, :, :, 0])
-            plt.show()
-    '''
-
-    # train discriminator on real & fake images
-    real_imgs = data_loader.get_batch(batch_size)
-    real_ys = np.ones([batch_size, 1]) + np.random.uniform(-0.1, 0, [batch_size, 1])
-    noise = np.random.normal(0, 1, [batch_size, hidden_dim])
-    fake_ys = np.zeros([batch_size, 1])
-    fake_imgs = gen_model.predict(noise)
-    # imgs = np.concatenate([real_imgs, fake_imgs], axis=0)
-    # ys = np.concatenate([real_ys, fake_ys], axis=0)
+            loss_gen = adv_model.train_on_batch(noise, fake_ys)
 
 
-    loss_dis_real = dis_model.train_on_batch(real_imgs, real_ys)
-    loss_dis_fake = dis_model.train_on_batch(fake_imgs, fake_ys)
-    print("Round {}, Loss dis real:{:.4f} fake:{:.4f}".format(rounds, loss_dis_real, loss_dis_fake))
-    loss_dis_test_real = dis_model.train_on_batch(real_imgs, real_ys)
-    loss_dis_test_fake = dis_model.train_on_batch(fake_imgs, fake_ys)
-    print(loss_dis_test_real, loss_dis_test_fake)
-    for _ in range(3):
-        noise = np.random.normal(0, 1, [batch_size, hidden_dim])
-        fake_ys = np.ones([batch_size, 1])
-
-        loss_gen = adv_model.train_on_batch(noise, fake_ys)
-        print("Round {}, Loss gen:{:.4f}".format(rounds, loss_gen))
-        loss_gen_test = adv_model.test_on_batch(noise, fake_ys)
-        print(loss_gen_test)
+if __name__ == "__main__":
+    dcgan128_experiment()
