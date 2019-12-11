@@ -17,15 +17,15 @@ class OmniglotCNN(k.Model):
     """
     def __init__(self):
         super(OmniglotCNN, self).__init__()
-        self.conv_1 = L.Conv2D(filters=64, kernel_size=(10, 10), activation=A.relu, input_shape=(105, 105, 1))  # [96, 96, 64]
-        self.maxpool_1 = L.MaxPool2D(pool_size=(2, 2), strides=(2, 2))  # [48, 48, 64]
-        self.conv_2 = L.Conv2D(filters=128, kernel_size=(7, 7), activation=A.relu) # [42, 42, 128]
+        self.conv_1 = L.Conv2D(filters=16, kernel_size=(10, 10), activation=A.relu, input_shape=(105, 105, 1))  # [96, 96, 16]
+        self.maxpool_1 = L.MaxPool2D(pool_size=(2, 2), strides=(2, 2))  # [48, 48, 16]
+        self.conv_2 = L.Conv2D(filters=32, kernel_size=(7, 7), activation=A.relu) # [42, 42, 32]
         self.maxpool_2 = L.MaxPool2D(pool_size=(2, 2), strides=(2, 2))  # [21, 21, 128]
-        self.conv_3 = L.Conv2D(filters=128, kernel_size=(4, 4), activation=A.relu)  # [18, 18, 128]
+        self.conv_3 = L.Conv2D(filters=64, kernel_size=(4, 4), activation=A.relu)  # [18, 18, 64]
         self.maxpool_3 = L.MaxPool2D(pool_size=(2, 2), strides=(2, 2))  # [9, 9, 128]
-        self.conv_4 = L.Conv2D(filters=256, kernel_size=(4, 4), activation=A.relu)  # [6, 6, 256]
+        self.conv_4 = L.Conv2D(filters=128, kernel_size=(4, 4), activation=A.relu)  # [6, 6, 128]
         self.flat = L.Flatten()  # [9216]
-        self.dense = L.Dense(4096, activation=A.sigmoid)  # [4096]
+        self.dense = L.Dense(64, activation=A.sigmoid)  # [64]
 
     def call(self, inputs, training=None, mask=None):
         x = self.conv_1(inputs)
@@ -46,7 +46,7 @@ class OmniglotSiameseNetwork(k.Model):
         super(OmniglotSiameseNetwork, self).__init__()
         self.cnn = OmniglotCNN()
         self.feature_diff = L.Lambda(lambda tensors: K.abs(tensors[0] - tensors[1]))
-        self.dense_out = L.Dense(1, activation=A.sigmoid)
+        self.dense_out = L.Dense(1, activation=A.sigmoid, use_bias=False)
         self.build([(None, 105, 105, 1), (None, 105, 105, 1)])
 
     def call(self, inputs, training=None, mask=None):

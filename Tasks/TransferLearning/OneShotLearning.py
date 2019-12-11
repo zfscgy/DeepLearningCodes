@@ -12,13 +12,13 @@ def omniglot_experiment(hparams: dict=None, settings: dict=None, verbose=1):
     if hparams is None:
         hparams = dict()
 
-    batch_size = hparams.get("batch_size", 16)
-    learning_rate = hparams.get("learning_rate", 1e-6)
+    batch_size = hparams.get("batch_size", 64)
+    learning_rate = hparams.get("learning_rate", 1e-3)
 
     if settings is None:
         settings = dict()
 
-    n_rounds = settings.get("n_rounds", 1000)
+    n_rounds = settings.get("n_rounds", 5000)
     test_batch_size = settings.get("test_batch_size", 100),
     omniglot_loader = OmniglotLoader()
     model = OmniglotSiameseNetwork()
