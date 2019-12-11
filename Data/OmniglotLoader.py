@@ -36,8 +36,12 @@ class OmniglotLoader:
             # From character folder, choose random images
             chs = [np.random.choice(list(ch.iterdir())) for ch in chs]
             for i in range(support_size):
-                image_pairs[0].append((np.asarray(Image.open(chs[i])) - 128) / 128)
-                image_pairs[1].append((np.asarray(Image.open(chs[support_size])) - 128) / 128)
+                """
+                Attention! The omniglot images only has two values: 0 and 1, using np.asarray will generate bool arrays
+                The value scope is [0, 1], not [0, 255]
+                """
+                image_pairs[0].append((np.asarray(Image.open(chs[i])) - 0.5) / 0.5)
+                image_pairs[1].append((np.asarray(Image.open(chs[support_size])) - 0.5) / 0.5)
             label = [1] + [0] * (support_size - 1)
             labels.extend(label)
         return image_pairs, labels
