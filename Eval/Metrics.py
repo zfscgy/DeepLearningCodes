@@ -1,4 +1,6 @@
 import numpy as np
+from sklearn.metrics import roc_auc_score as auc
+from sklearn.metrics import roc_curve
 
 def binary_cross_entropy(targets, predictions, epsilon=1e-9):
     predictions = np.clip(predictions, epsilon, 1. - epsilon)

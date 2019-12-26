@@ -20,11 +20,12 @@ class Cifar10Loader:
         """
         idx = np.random.choice(self.train_set.shape[0], batch_size)
         train_batch = self.train_set[idx]
-        return train_batch[:, :3072].reshape([-1, 3, 32, 32]), train_batch[:, 3072]
+        return (train_batch[:, :3072].reshape([-1, 3, 32, 32]).astype(np.float32) - 128)/255, train_batch[:, 3072]
 
     def get_test_batch(self, batch_size=None):
         if batch_size is None:
-            return self.test_set[:, :3072].reshape([-1, 3, 32, 32]), self.train_set[:, 3072]
+            return (self.test_set[:, :3072].reshape([-1, 3, 32, 32]).astype(np.float32) - 128)/255, \
+                   self.test_set[:, 3072]
         idx = np.random.choice(self.test_set.shape[0], batch_size)
         test_batch = self.test_set[idx]
-        return test_batch[:, :3072].reshape([-1, 3, 32, 32]), test_batch[:, 3072]
+        return (test_batch[:, :3072].reshape([-1, 3, 32, 32]).astype(np.float32) - 128)/255, test_batch[:, 3072]

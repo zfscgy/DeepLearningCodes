@@ -10,6 +10,12 @@ class LFWLoader:
         self.train_len = int(len(self.paths) * split)
 
     def _get_batch(self, batch_size, support_size=2, train=True):
+        """
+        Return shape:
+        [batch, 250, 250, 3]
+        [batch, 250, 250, 3]
+        [batch]
+        """
         if train:
             paths = self.paths[:self.train_len]
         else:
@@ -20,7 +26,7 @@ class LFWLoader:
         imgs0 = []
         imgs1 = []
         labels = []
-        for _ in batch_size:
+        for _ in range(batch_size):
             same_img = np.random.choice(list(folders[0].iterdir()), 2, replace=False)
             same_img[0] = np.asarray(Image.open(same_img[0]))
             same_img[1] = np.asarray(Image.open(same_img[1]))
@@ -34,7 +40,9 @@ class LFWLoader:
                 imgs0.append(img0)
                 imgs1.append(img1)
                 labels.append(0)
-        return np.array(imgs0), np.array(imgs1), np.array(labels)[:, np.newaxis]
+        return (np.array(imgs0).astype(np.float32) - 128)/255, \
+               (np.array(imgs1).astype(np.float32) - 128)/255, \
+               np.array(labels)
 
     def get_train_batch(self, batch_size, support_size=2):
         return self._get_batch(batch_size, support_size, train=True)
